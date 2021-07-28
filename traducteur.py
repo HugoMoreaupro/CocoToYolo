@@ -100,7 +100,7 @@ def create_data_txt(pathtest, pathtrain, pathbackup, nbclasses, pathconfig):
         "classes = " + str(nbclasses) + "\n" +
         "train = " + pathtrain + 'train.txt\n' +
         "valid = " + pathtest + 'test.txt\n' +
-        "names = " + pathconfig + 'classes.names\n' +
+        "names = " + pathconfig + '/classes.names\n' +
         "backup = " + pathbackup
     )
     file.close()
@@ -114,7 +114,7 @@ def create_names(dictImages, filePath):
         file.close()
 
 
-def create_script(dataFilePath, configFilePath, originalWheightPath, filePath):
+def create_script_tiny_v3(dataFilePath, configFilePath, originalWheightPath, filePath):
     file = open(str(filePath), 'a')
     file.write(
         './darknet detector train ' +
@@ -127,6 +127,17 @@ def create_script(dataFilePath, configFilePath, originalWheightPath, filePath):
 
     os.chmod(filePath, 0o001)
 
+
+def create_tiny_v3(path,train):
+
+    shutil.copy("v3t/yolov3-tiny.conv.15",path + "/v3_cfg")
+    shutil.copy("v3t/yolov3-tiny_obj.cfg",path + "/v3_cfg")
+    create_script_tiny_v3(
+        train,
+        path + "/v3_cfg/yolov3-tiny_obj.cfg",
+        path + "/v3_cfg/yolov3-tiny.conv.15",
+        path+'/launcher_tiny_v3'
+    )
 
 ##################################Execution#####################################
 
@@ -176,8 +187,8 @@ if not os.path.exists(dossierproduit):
     else:
         print("Erreur interne 1")
         quit()
-    if not os.path.exists(dossierproduit + "/configuration"):
-        os.mkdir(dossierproduit + "/configuration")
+    if not os.path.exists(dossierproduit + "/v3_cfg"):
+        os.mkdir(dossierproduit + "/v3_cfg")
 
 else:
     print('A directory is already named as the directory aimed. Please delete it or change your destination path')
@@ -190,8 +201,8 @@ if not os.path.isfile(entree):
 data = chargement_source(entree)
 make_txt_yolo_from_coco_bbox(data, pathtrain, correspondancesObjets)
 dispatch(pathtest, pathtrain, images, data)
-create_names(correspondancesNoms, pathconfig + 'classes.names\n')
+create_names(correspondancesNoms, pathconfig + '/classes.names\n')
 create_data_txt(
     pathtest, pathtrain, pathbackup, len(correspondancesObjets), pathconfig
 )
-create_script()
+create_tiny_v3(dossierproduit, pathtrain + '/train.txt')
